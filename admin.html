@@ -274,6 +274,7 @@
 <div class="wrap">
   <h1>لوحة التحكم</h1>
   <div class="sub">أدخل معلوماتك وأضف مشاريعك، ثم انشرها مباشرة على موقعك بضغطة زر. اربط حسابك أولاً (أسفل الصفحة) قبل رفع أي صورة.</div>
+  <div id="sync-banner" class="publish-msg err" style="display:none;"></div>
 
   <!-- بطاقة المعلومات الشخصية -->
   <div class="card">
@@ -583,6 +584,50 @@ function clearConnection(){
   renderConnectStatus();
 }
 
+async function fetchDataFromGitHub(){
+  const token = getToken();
+  if(!token) return false;
+
+  const statusBanner = document.getElementById('sync-banner');
+
+  try{
+    const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE_PATH}`;
+    const res = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+
+    if(res.status === 404){
+      // لا يوجد ملف بيانات بعد على GitHub — نبقي ما هو موجود محلياً
+      return false;
+    }
+    if(!res.ok){
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `فشل الجلب (${res.status})`);
+    }
+
+    const fileInfo = await res.json();
+    const decodedContent = decodeURIComponent(
+      atob(fileInfo.content.replace(/\n/g, ''))
+        .split('')
+        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('')
+    );
+    const remoteData = JSON.parse(decodedContent);
+
+    setData(remoteData);
+    return true;
+  } catch(err){
+    if(statusBanner){
+      statusBanner.style.display = 'block';
+      statusBanner.textContent = 'تعذّر تحميل أحدث نسخة من الموقع، قد تكون البيانات المعروضة قديمة. (' + err.message + ')';
+    }
+    return false;
+  }
+}
+
 function renderConnectStatus(){
   const token = getToken();
   const statusEl = document.getElementById('connect-status');
@@ -831,8 +876,21 @@ function escapeHtml(str){
   }[m]));
 }
 
-loadForm();
-renderConnectStatus();
+async function initApp(){
+  renderConnectStatus();
+  const token = getToken();
+
+  if(token){
+    showPublishMsg('loading', 'جاري تحميل أحدث بيانات من موقعك...');
+    await fetchDataFromGitHub();
+    const msgEl = document.getElementById('publish-msg');
+    msgEl.classList.remove('show');
+  }
+
+  loadForm();
+}
+
+initApp();
 </script>
 </body>
 </html>
