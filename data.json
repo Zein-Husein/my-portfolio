@@ -16,5 +16,13 @@
       "link": "https://zein-husein.github.io/my-portfolio/",
       "image": "https://raw.githubusercontent.com/Zein-Husein/my-portfolio/main/images/1790176361205-p1.jpg"
     }
-  ]
+  ],
+  "theme": {
+    "template": 10,
+    "colors": {
+      "bg": "#dbb11a",
+      "ink": "#1d1d1f",
+      "accent": "#0071e3"
+    }
+  }
 }
