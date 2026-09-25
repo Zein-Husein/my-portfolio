@@ -18,11 +18,11 @@
     }
   ],
   "theme": {
-    "template": 1,
+    "template": 9,
     "colors": {
-      "bg": "#ede7d9",
-      "ink": "#282720",
-      "accent": "#4e6b4a"
+      "bg": "#1b1b1f",
+      "ink": "#f2f0ea",
+      "accent": "#c98a4b"
     }
   }
 }
